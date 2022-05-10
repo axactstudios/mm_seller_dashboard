@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:mm_seller_dashboard/models/Address.dart';
 import 'package:mm_seller_dashboard/models/Order.dart';
 import 'package:mm_seller_dashboard/screens/product_details/product_details_screen.dart';
+import 'package:mm_seller_dashboard/services/database/user_database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../constants.dart';
@@ -12,7 +14,13 @@ import '../../../size_config.dart';
 class Body extends StatefulWidget {
   final Order order;
   final List<Widget> orderedProducts;
-  const Body({Key key, @required this.order, @required this.orderedProducts})
+  final Address address;
+
+  const Body(
+      {Key key,
+      @required this.order,
+      @required this.orderedProducts,
+      @required this.address})
       : super(key: key);
 
   @override
@@ -35,9 +43,15 @@ class _BodyState extends State<Body> {
       animationAsset = 'assets/images/order_delivered.json';
       statusText = 'Your order has been delivered';
     }
-
+    getAddressFromID();
     setState(() {});
     super.initState();
+  }
+
+  Address add = new Address();
+  getAddressFromID() async {
+    // print(widget.order.address);
+    // print(widget.order.userid);
   }
 
   @override
@@ -94,6 +108,58 @@ class _BodyState extends State<Body> {
                           child: Text(
                             'Summary',
                             style: categoryBlockHeadingStyle,
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Customer Name:  ",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '${widget.address.receiver}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Customer Address:  ",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                            ),
+                            children: [
+                              TextSpan(
+                                text:
+                                    '${widget.address.addresLine1},${widget.address.addressLine2},${widget.address.city},${widget.address.district},${widget.address.landmark}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Customer Phone Number:  ",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '${widget.address.phone}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Text.rich(
@@ -219,7 +285,7 @@ class _BodyState extends State<Body> {
             ),
             Center(
               child: Text(
-                'Customer Support',
+                'Seller Support',
                 style: categoryBlockHeadingStyle,
               ),
             ),
@@ -238,7 +304,7 @@ class _BodyState extends State<Body> {
               onTap: () {
                 launch('tel:+91 9161961471');
               },
-              child: Center(child: Text('Call or WhatsApp at +91 9161961471')),
+              child: Center(child: Text('Call or WhatsApp at +91 9354807154')),
             ),
             SizedBox(
               height: 20,

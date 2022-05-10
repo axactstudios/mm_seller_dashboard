@@ -1,12 +1,14 @@
-
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:mm_seller_dashboard/components/nothingtoshow_container.dart';
 import 'package:mm_seller_dashboard/components/product_card.dart';
+import 'package:mm_seller_dashboard/components/product_short_detail_card.dart';
+import 'package:mm_seller_dashboard/models/Product.dart';
 import 'package:mm_seller_dashboard/screens/product_details/product_details_screen.dart';
+import 'package:mm_seller_dashboard/services/database/product_database_helper.dart';
 
 import '../../../constants.dart';
 import '../../../size_config.dart';
-
 
 class Body extends StatefulWidget {
   final String searchQuery;
@@ -42,76 +44,9 @@ class _BodyState extends State<Body> {
               horizontal: getProportionateScreenWidth(screenPadding)),
           child: SizedBox(
             width: double.infinity,
-            child: Column(
-              children: [
-//                SizedBox(height: getProportionateScreenHeight(0)),
-//                Text(
-//                  "$searchQuery",
-//                  style: headingStyle,
-//                ),
-//                Text.rich(
-//                  TextSpan(
-//                    text: " in ",
-//                    style: TextStyle(
-//                      fontWeight: FontWeight.bold,
-//                      fontStyle: FontStyle.italic,
-//                    ),
-//                    children: [
-//                      TextSpan(
-//                        text: "$searchIn",
-//                        style: TextStyle(
-//                          decoration: TextDecoration.underline,
-//                          fontWeight: FontWeight.normal,
-//                          fontStyle: FontStyle.normal,
-//                        ),
-//                      ),
-//                    ],
-//                  ),
-//                ),
-//                SizedBox(height: getProportionateScreenHeight(30)),
-                SizedBox(
-                  // height: SizeConfig.screenHeight * 0.85,
-                  child: buildProductsGrid(),
-                ),
-                //check
-                // SizedBox(
-                //   height: SizeConfig.screenHeight * 0.88,
-                //   child: StreamBuilder<List<String>>(
-                //     stream: widget.filteredProductsStream.stream,
-                //     builder: (context, snapshot) {
-                //       if (snapshot.hasData) {
-                //         List<Product> products = snapshot.data;
-                //         if (products.length == 0) {
-                //           return Center(
-                //             child: NothingToShowContainer(
-                //               secondaryMessage:
-                //               "No Products in ${widget.productType}",
-                //             ),
-                //           );
-                //         }
-                //
-                //         return buildProductsGrid(products);
-                //       } else if (snapshot.connectionState ==
-                //           ConnectionState.waiting) {
-                //         return Center(
-                //           child: CircularProgressIndicator(),
-                //         );
-                //       } else if (snapshot.hasError) {
-                //         final error = snapshot.error;
-                //         Logger().w(error.toString());
-                //       }
-                //       return Center(
-                //         child: NothingToShowContainer(
-                //           primaryMessage: "Something went wrong",
-                //           secondaryMessage:
-                //           "No Products in ${widget.productType}",
-                //         ),
-                //       );
-                //     },
-                //   ),
-                // ),
-                SizedBox(height: getProportionateScreenHeight(30)),
-              ],
+            child: SizedBox(
+              height: SizeConfig.screenHeight * 0.85,
+              child: buildProductsGrid(),
             ),
           ),
         ),
@@ -132,32 +67,39 @@ class _BodyState extends State<Body> {
       child: Builder(
         builder: (context) {
           if (widget.searchResultProductsId.length > 0) {
-            return GridView.builder(
-              shrinkWrap: true,
+            return ListView.builder(
               physics: BouncingScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 18,
-              ),
               itemCount: widget.searchResultProductsId.length,
               itemBuilder: (context, index) {
-                return ProductCard(
-                  productId: widget.searchResultProductsId[index],
-                  press: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(
-                          productId: widget.searchResultProductsId[index],
-                        ),
-                      ),
-                    );
-                  },
-                );
+                return buildProductsCard(widget.searchResultProductsId[index]);
               },
             );
+            // return GridView.builder(
+            //   shrinkWrap: true,
+            //   physics: BouncingScrollPhysics(),
+            //   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            //     crossAxisCount: 2,
+            //     childAspectRatio: 0.7,
+            //     crossAxisSpacing: 4,
+            //     mainAxisSpacing: 18,
+            //   ),
+            //   itemCount: widget.searchResultProductsId.length,
+            //   itemBuilder: (context, index) {
+            //     return ProductCard(
+            //       productId: widget.searchResultProductsId[index],
+            //       press: () {
+            //         Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //             builder: (context) => ProductDetailsScreen(
+            //               productId: widget.searchResultProductsId[index],
+            //             ),
+            //           ),
+            //         );
+            //       },
+            //     );
+            //   },
+            // );
           }
           return Center(
             child: NothingToShowContainer(
@@ -169,5 +111,150 @@ class _BodyState extends State<Body> {
         },
       ),
     );
+  }
+
+  Widget buildProductsCard(String productId) {
+    return FutureBuilder<Product>(
+      future: ProductDatabaseHelper().getProductWithID(productId),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final product = snapshot.data;
+          return buildProductDismissible(product);
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          final error = snapshot.error.toString();
+          Logger().e(error);
+        }
+        return Center(
+          child: Icon(
+            Icons.error,
+            color: kTextColor,
+            size: 60,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget buildProductDismissible(Product product) {
+    return ProductShortDetailCard(
+      checkout: true,
+      productId: product.id,
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(
+              productId: product.id,
+            ),
+          ),
+        );
+      },
+    );
+
+    // return Dismissible(
+    //   key: Key(product.id),
+    //   direction: DismissDirection.horizontal,
+    //   background: buildDismissibleSecondaryBackground(),
+    //   secondaryBackground: buildDismissiblePrimaryBackground(),
+    //   dismissThresholds: {
+    //     DismissDirection.endToStart: 0.65,
+    //     DismissDirection.startToEnd: 0.65,
+    //   },
+    //   child: ProductShortDetailCard(
+    //     checkout: true,
+    //     productId: product.id,
+    //     onPressed: () {
+    //       Navigator.push(
+    //         context,
+    //         MaterialPageRoute(
+    //           builder: (context) => ProductDetailsScreen(
+    //             productId: product.id,
+    //           ),
+    //         ),
+    //       );
+    //     },
+    //   ),
+    //   confirmDismiss: (direction) async {
+    //     if (direction == DismissDirection.startToEnd) {
+    //       final confirmation = await showConfirmationDialog(
+    //           context, "Are you sure to Delete Product?");
+    //       if (confirmation) {
+    //         for (int i = 0; i < product.images.length; i++) {
+    //           String path =
+    //               ProductDatabaseHelper().getPathForProductImage(product.id, i);
+    //           final deletionFuture =
+    //               FirestoreFilesAccess().deleteFileFromPath(path);
+    //           await showDialog(
+    //             context: context,
+    //             builder: (context) {
+    //               return FutureProgressDialog(
+    //                 deletionFuture,
+    //                 message: Text(
+    //                     "Deleting Product Images ${i + 1}/${product.images.length}"),
+    //               );
+    //             },
+    //           );
+    //         }
+    //
+    //         bool productInfoDeleted = false;
+    //         String snackbarMessage;
+    //         try {
+    //           final deleteProductFuture =
+    //               ProductDatabaseHelper().deleteUserProduct(product.id);
+    //           productInfoDeleted = await showDialog(
+    //             context: context,
+    //             builder: (context) {
+    //               return FutureProgressDialog(
+    //                 deleteProductFuture,
+    //                 message: Text("Deleting Product"),
+    //               );
+    //             },
+    //           );
+    //           if (productInfoDeleted == true) {
+    //             snackbarMessage = "Product deleted successfully";
+    //           } else {
+    //             throw "Coulnd't delete product, please retry";
+    //           }
+    //         } on FirebaseException catch (e) {
+    //           Logger().w("Firebase Exception: $e");
+    //           snackbarMessage = "Something went wrong";
+    //         } catch (e) {
+    //           Logger().w("Unknown Exception: $e");
+    //           snackbarMessage = e.toString();
+    //         } finally {
+    //           Logger().i(snackbarMessage);
+    //           Scaffold.of(context).showSnackBar(
+    //             SnackBar(
+    //               content: Text(snackbarMessage),
+    //             ),
+    //           );
+    //         }
+    //       }
+    //       await refreshPage();
+    //       return confirmation;
+    //     } else if (direction == DismissDirection.endToStart) {
+    //       final confirmation = await showConfirmationDialog(
+    //           context, "Are you sure to Edit Product?");
+    //       if (confirmation) {
+    //         await Navigator.push(
+    //           context,
+    //           MaterialPageRoute(
+    //             builder: (context) => EditProductScreen(
+    //               productToEdit: product,
+    //             ),
+    //           ),
+    //         );
+    //       }
+    //       await refreshPage();
+    //       return false;
+    //     }
+    //     return false;
+    //   },
+    //   onDismissed: (direction) async {
+    //     await refreshPage();
+    //   },
+    // );
   }
 }

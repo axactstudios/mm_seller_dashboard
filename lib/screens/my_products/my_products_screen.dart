@@ -47,7 +47,7 @@ class MyProductsScreen extends StatelessWidget {
           IconButton(
               icon: Icon(FontAwesomeIcons.headset, color: kPrimaryColor),
               onPressed: () {
-                launch('https://wa.me/919027553376?text=Support!');
+                launch('https://wa.me/919354807154?text=Support!');
               }),
         ],
       ),

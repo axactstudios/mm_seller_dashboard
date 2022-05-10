@@ -47,177 +47,206 @@ class ProductShortDetailCard extends StatefulWidget {
 class _ProductShortDetailCardState extends State<ProductShortDetailCard> {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: widget.onPressed,
-      child: FutureBuilder<Product>(
-        future: ProductDatabaseHelper().getProductWithID(widget.productId),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final product = snapshot.data;
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: InkWell(
+        onTap: widget.onPressed,
+        child: FutureBuilder<Product>(
+          future: ProductDatabaseHelper().getProductWithID(widget.productId),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final product = snapshot.data;
 
-            return Row(
-              children: [
-                SizedBox(
-                  width: getProportionateScreenWidth(100),
-                  child: Stack(
-                    children: [
-                      AspectRatio(
-                        aspectRatio: 0.65,
-                        child: Padding(
-                          padding: EdgeInsets.all(7),
-                          child: product.images.length > 0
-                              ? ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10)),
-                                  child: CachedNetworkImage(
-                                    imageUrl: product.images[0],
-                                    fit: BoxFit.contain,
+              return SizedBox(
+                height: getProportionateScreenWidth(125),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: getProportionateScreenWidth(125),
+                      child: Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: Padding(
+                              padding: EdgeInsets.all(7),
+                              child: product.images.length > 0
+                                  ? ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                      child: CachedNetworkImage(
+                                        imageUrl: product.images[0],
+                                        fit: BoxFit.contain,
+                                      ),
+                                    )
+                                  : Text("No Image"),
+                            ),
+                          ),
+                          product.soldOut == true
+                              ? Center(
+                                  child: Container(
+                                    height: getProportionateScreenWidth(125),
+                                    width: getProportionateScreenWidth(125),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.2),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10))),
+                                    child: Center(
+                                      child: Text(
+                                        'Out Of Stock',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 )
-                              : Text("No Image"),
-                        ),
+                              : Container()
+                        ],
                       ),
-                      product.soldOut == true
-                          ? Container(
-                              width: getProportionateScreenWidth(100),
-                              height: 150,
-                              color: Colors.black.withOpacity(0.2),
-                              child: Center(
+                    ),
+                    SizedBox(width: getProportionateScreenWidth(10)),
+                    Expanded(
+                      flex: 4,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Spacer(),
+                              Container(
+                                width: getProportionateScreenWidth(145),
                                 child: Text(
-                                  'Out Of Stock',
+                                  product.title,
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: kPrimaryColor,
                                   ),
+                                  maxLines: 2,
                                 ),
                               ),
-                            )
-                          : Container()
-                    ],
-                  ),
-                ),
-                SizedBox(width: getProportionateScreenWidth(20)),
-                Expanded(
-                  flex: 4,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: getProportionateScreenWidth(145),
-                            child: Text(
-                              product.title,
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: kPrimaryColor,
-                              ),
-                              maxLines: 2,
-                            ),
-                          ),
-                          widget.size != null
-                              ? Text(
-                                  "Size: ${widget.size} | Color: ${widget.color}",
-                                  style: TextStyle(
-                                    color: kTextColor,
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 12,
-                                  ),
-                                )
-                              : Container(),
-                          SizedBox(height: 10),
-                          Text.rich(
-                            TextSpan(
-                                text:
-                                    "\₹${product.discountPrice.toStringAsFixed(2)}    ",
-                                style: TextStyle(
-                                  color: kPrimaryColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                                children: [
-                                  TextSpan(
+                              widget.size != null
+                                  ? Text(
+                                      "Size: ${widget.size} | Color: ${widget.color}",
+                                      style: TextStyle(
+                                        color: kTextColor,
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                                  : Container(),
+                              SizedBox(height: 10),
+                              Text.rich(
+                                TextSpan(
                                     text:
-                                        "\₹${product.originalPrice.toStringAsFixed(2)}",
+                                        "\₹${product.discountPrice.toStringAsFixed(2)}    ",
                                     style: TextStyle(
-                                      color: kTextColor,
-                                      decoration: TextDecoration.lineThrough,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 12,
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
                                     ),
-                                  ),
-                                ]),
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            "\₹${product.originalPrice.toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          color: kTextColor,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ]),
+                              ),
+                              Spacer(),
+                              // SizedBox(height: getProportionateScreenHeight(60))
+                            ],
                           ),
-
-                          // SizedBox(height: getProportionateScreenHeight(60))
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: getProportionateScreenWidth(20)),
-                widget.checkout != null
-                    ? widget.checkout
-                        ? Expanded(
-                            flex: 1,
-                            child: product.soldOut == true
-                                ? InkWell(
-                                    focusColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    splashColor: Colors.transparent,
-                                    onTap: () {
-                                      ProductDatabaseHelper()
-                                          .changeProductStockStatus(
-                                              product.id, product.soldOut);
-                                      setState(() {});
-                                    },
-                                    child: Container(
-                                        height: 150,
-                                        width: 30,
-                                        child: Icon(EvaIcons.eyeOff)))
-                                : InkWell(
-                                    focusColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    splashColor: Colors.transparent,
-                                    onTap: () {
-                                      ProductDatabaseHelper()
-                                          .changeProductStockStatus(
-                                              product.id, product.soldOut);
-                                      setState(() {});
-                                    },
-                                    child: Container(
-                                        height: 150,
-                                        width: 30,
-                                        child: Icon(EvaIcons.eyeOutline))),
-                          )
+                    ),
+                    SizedBox(width: getProportionateScreenWidth(10)),
+                    widget.checkout != null
+                        ? widget.checkout
+                            ? Expanded(
+                                flex: 1,
+                                child: product.soldOut == true
+                                    ? InkWell(
+                                        focusColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        splashColor: Colors.transparent,
+                                        onTap: () {
+                                          ProductDatabaseHelper()
+                                              .changeProductStockStatus(
+                                                  product.id, product.soldOut);
+                                          setState(() {});
+                                        },
+                                        child: Container(
+                                            height: getProportionateScreenWidth(
+                                                125),
+                                            width:
+                                                getProportionateScreenWidth(20),
+                                            child: Icon(EvaIcons.eyeOff)))
+                                    : InkWell(
+                                        focusColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        splashColor: Colors.transparent,
+                                        onTap: () {
+                                          ProductDatabaseHelper()
+                                              .changeProductStockStatus(
+                                                  product.id, product.soldOut);
+                                          setState(() {});
+                                        },
+                                        child: Container(
+                                            height: getProportionateScreenWidth(
+                                                125),
+                                            width:
+                                                getProportionateScreenWidth(20),
+                                            child: Icon(EvaIcons.eyeOutline))),
+                              )
+                            : Container()
                         : Container()
-                    : Container()
-              ],
-            );
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: CircularProgressIndicator(
-              backgroundColor: kPrimaryColor,
-            ));
-          } else if (snapshot.hasError) {
-            final errorMessage = snapshot.error.toString();
-            Logger().e(errorMessage);
-          }
-          return Center(
-            child: Icon(
-              Icons.error,
-              color: kTextColor,
-              size: 60,
-            ),
-          );
-        },
+                  ],
+                ),
+              );
+            }
+            // else if (snapshot.connectionState == ConnectionState.waiting) {
+            //   return Center(
+            //       child: CircularProgressIndicator(
+            //     backgroundColor: kPrimaryColor,
+            //   ));
+            // }
+            else if (snapshot.hasError) {
+              final errorMessage = snapshot.error.toString();
+              Logger().e(errorMessage);
+              return Center(
+                child: Icon(
+                  Icons.error,
+                  color: kTextColor,
+                  size: 60,
+                ),
+              );
+            }
+            return Container();
+            // return Center(
+            //   child: Icon(
+            //     Icons.error,
+            //     color: kTextColor,
+            //     size: 60,
+            //   ),
+            // );
+          },
+        ),
       ),
     );
   }

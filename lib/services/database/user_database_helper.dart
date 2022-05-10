@@ -59,14 +59,16 @@ class UserDatabaseHelper {
     return addresses;
   }
 
-  Future<Address> getAddressFromId(String id) async {
-    String uid = AuthenticationService().currentUser.uid;
+  Future<Address> getAddressFromId(String id, String userId) async {
     final doc = await firestore
-        .collection(USERS_COLLECTION_NAME)
-        .doc(uid)
-        .collection(ADDRESSES_COLLECTION_NAME)
+        .collection('users')
+        .doc(userId)
+        .collection('addresses')
         .doc(id)
         .get();
+
+    print(id);
+    print(userId);
     final address = Address.fromMap(doc.data(), id: doc.id);
     return address;
   }

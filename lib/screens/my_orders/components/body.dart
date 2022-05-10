@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:mm_seller_dashboard/components/nothingtoshow_container.dart';
 import 'package:mm_seller_dashboard/components/product_short_detail_card.dart';
+import 'package:mm_seller_dashboard/models/Address.dart';
 import 'package:mm_seller_dashboard/models/Order.dart';
 import 'package:mm_seller_dashboard/models/Product.dart';
 import 'package:mm_seller_dashboard/screens/order_detail/order_detail_screen.dart';
 import 'package:mm_seller_dashboard/screens/product_details/product_details_screen.dart';
 import 'package:mm_seller_dashboard/services/data_streams/orders_stream.dart';
 import 'package:mm_seller_dashboard/services/database/orders_database_helper.dart';
+import 'package:mm_seller_dashboard/services/database/user_database_helper.dart';
 
 import '../../../constants.dart';
 import '../../../size_config.dart';
@@ -48,7 +50,7 @@ class _BodyState extends State<Body> {
               child: Column(
                 children: [
                   SizedBox(
-                    height: SizeConfig.screenHeight * 0.75,
+                    height: SizeConfig.screenHeight * 0.8,
                     child: buildOrderedProductsList(),
                   ),
                 ],
@@ -156,12 +158,19 @@ class _BodyState extends State<Body> {
       ));
     }
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        Address add = await UserDatabaseHelper()
+            .getAddressFromId(order.address, order.userid);
+        print(add.addresLine1);
+
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                OrderDetailScreen(order: order, orderedProducts: products),
+            builder: (context) => OrderDetailScreen(
+              order: order,
+              orderedProducts: products,
+              address: add,
+            ),
           ),
         ).then((_) async {
           await refreshPage();

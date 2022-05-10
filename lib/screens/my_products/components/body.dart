@@ -51,13 +51,13 @@ class _BodyState extends State<Body> {
                 children: [
                   // SizedBox(height: getProportionateScreenHeight(20)),
                   // Text("Your Products", style: headingStyle),
-                  Text(
-                    "Swipe LEFT to Edit, Swipe RIGHT to Delete",
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(30)),
+                  // Text(
+                  //   "Swipe LEFT to Edit, Swipe RIGHT to Delete",
+                  //   style: TextStyle(fontSize: 12),
+                  // ),
+                  // SizedBox(height: getProportionateScreenHeight(30)),
                   SizedBox(
-                    height: SizeConfig.screenHeight * 0.7,
+                    height: SizeConfig.screenHeight * 0.8,
                     child: StreamBuilder<List<String>>(
                       stream: usersProductsStream.stream,
                       builder: (context, snapshot) {
@@ -78,21 +78,26 @@ class _BodyState extends State<Body> {
                               return buildProductsCard(productsIds[index]);
                             },
                           );
-                        } else if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (snapshot.hasError) {
+                        }
+                        // else if (snapshot.connectionState ==
+                        //     ConnectionState.waiting) {
+                        //   return Center(
+                        //     child: CircularProgressIndicator(),
+                        //   );
+                        // }
+                        else if (snapshot.hasError) {
                           final error = snapshot.error;
                           Logger().w(error.toString());
+                          return Center(
+                            child: NothingToShowContainer(
+                              iconPath: "assets/icons/network_error.svg",
+                              primaryMessage: "Something went wrong",
+                              secondaryMessage: "Unable to connect to Database",
+                            ),
+                          );
                         }
-                        return Center(
-                          child: NothingToShowContainer(
-                            iconPath: "assets/icons/network_error.svg",
-                            primaryMessage: "Something went wrong",
-                            secondaryMessage: "Unable to connect to Database",
-                          ),
+                        return Container(
+                          height: 130,
                         );
                       },
                     ),
@@ -119,127 +124,147 @@ class _BodyState extends State<Body> {
         if (snapshot.hasData) {
           final product = snapshot.data;
           return buildProductDismissible(product);
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
+        }
+        // else if (snapshot.connectionState == ConnectionState.waiting) {
+        //   return Center(child: CircularProgressIndicator());
+        // }
+        else if (snapshot.hasError) {
           final error = snapshot.error.toString();
           Logger().e(error);
+          return Center(
+            child: Icon(
+              Icons.error,
+              color: kTextColor,
+              size: 60,
+            ),
+          );
         }
-        return Center(
-          child: Icon(
-            Icons.error,
-            color: kTextColor,
-            size: 60,
-          ),
+        return Container(
+          height: 130,
         );
       },
     );
   }
 
   Widget buildProductDismissible(Product product) {
-    return Dismissible(
-      key: Key(product.id),
-      direction: DismissDirection.horizontal,
-      background: buildDismissibleSecondaryBackground(),
-      secondaryBackground: buildDismissiblePrimaryBackground(),
-      dismissThresholds: {
-        DismissDirection.endToStart: 0.65,
-        DismissDirection.startToEnd: 0.65,
-      },
-      child: ProductShortDetailCard(
-        checkout: true,
-        productId: product.id,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailsScreen(
-                productId: product.id,
-              ),
+    return ProductShortDetailCard(
+      checkout: true,
+      productId: product.id,
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(
+              productId: product.id,
             ),
-          );
-        },
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          final confirmation = await showConfirmationDialog(
-              context, "Are you sure to Delete Product?");
-          if (confirmation) {
-            for (int i = 0; i < product.images.length; i++) {
-              String path =
-                  ProductDatabaseHelper().getPathForProductImage(product.id, i);
-              final deletionFuture =
-                  FirestoreFilesAccess().deleteFileFromPath(path);
-              await showDialog(
-                context: context,
-                builder: (context) {
-                  return FutureProgressDialog(
-                    deletionFuture,
-                    message: Text(
-                        "Deleting Product Images ${i + 1}/${product.images.length}"),
-                  );
-                },
-              );
-            }
-
-            bool productInfoDeleted = false;
-            String snackbarMessage;
-            try {
-              final deleteProductFuture =
-                  ProductDatabaseHelper().deleteUserProduct(product.id);
-              productInfoDeleted = await showDialog(
-                context: context,
-                builder: (context) {
-                  return FutureProgressDialog(
-                    deleteProductFuture,
-                    message: Text("Deleting Product"),
-                  );
-                },
-              );
-              if (productInfoDeleted == true) {
-                snackbarMessage = "Product deleted successfully";
-              } else {
-                throw "Coulnd't delete product, please retry";
-              }
-            } on FirebaseException catch (e) {
-              Logger().w("Firebase Exception: $e");
-              snackbarMessage = "Something went wrong";
-            } catch (e) {
-              Logger().w("Unknown Exception: $e");
-              snackbarMessage = e.toString();
-            } finally {
-              Logger().i(snackbarMessage);
-              Scaffold.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(snackbarMessage),
-                ),
-              );
-            }
-          }
-          await refreshPage();
-          return confirmation;
-        } else if (direction == DismissDirection.endToStart) {
-          final confirmation = await showConfirmationDialog(
-              context, "Are you sure to Edit Product?");
-          if (confirmation) {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditProductScreen(
-                  productToEdit: product,
-                ),
-              ),
-            );
-          }
-          await refreshPage();
-          return false;
-        }
-        return false;
-      },
-      onDismissed: (direction) async {
-        await refreshPage();
+          ),
+        );
       },
     );
+
+    // return Dismissible(
+    //   key: Key(product.id),
+    //   direction: DismissDirection.horizontal,
+    //   background: buildDismissibleSecondaryBackground(),
+    //   secondaryBackground: buildDismissiblePrimaryBackground(),
+    //   dismissThresholds: {
+    //     DismissDirection.endToStart: 0.65,
+    //     DismissDirection.startToEnd: 0.65,
+    //   },
+    //   child: ProductShortDetailCard(
+    //     checkout: true,
+    //     productId: product.id,
+    //     onPressed: () {
+    //       Navigator.push(
+    //         context,
+    //         MaterialPageRoute(
+    //           builder: (context) => ProductDetailsScreen(
+    //             productId: product.id,
+    //           ),
+    //         ),
+    //       );
+    //     },
+    //   ),
+    //   confirmDismiss: (direction) async {
+    //     if (direction == DismissDirection.startToEnd) {
+    //       final confirmation = await showConfirmationDialog(
+    //           context, "Are you sure to Delete Product?");
+    //       if (confirmation) {
+    //         for (int i = 0; i < product.images.length; i++) {
+    //           String path =
+    //               ProductDatabaseHelper().getPathForProductImage(product.id, i);
+    //           final deletionFuture =
+    //               FirestoreFilesAccess().deleteFileFromPath(path);
+    //           await showDialog(
+    //             context: context,
+    //             builder: (context) {
+    //               return FutureProgressDialog(
+    //                 deletionFuture,
+    //                 message: Text(
+    //                     "Deleting Product Images ${i + 1}/${product.images.length}"),
+    //               );
+    //             },
+    //           );
+    //         }
+    //
+    //         bool productInfoDeleted = false;
+    //         String snackbarMessage;
+    //         try {
+    //           final deleteProductFuture =
+    //               ProductDatabaseHelper().deleteUserProduct(product.id);
+    //           productInfoDeleted = await showDialog(
+    //             context: context,
+    //             builder: (context) {
+    //               return FutureProgressDialog(
+    //                 deleteProductFuture,
+    //                 message: Text("Deleting Product"),
+    //               );
+    //             },
+    //           );
+    //           if (productInfoDeleted == true) {
+    //             snackbarMessage = "Product deleted successfully";
+    //           } else {
+    //             throw "Coulnd't delete product, please retry";
+    //           }
+    //         } on FirebaseException catch (e) {
+    //           Logger().w("Firebase Exception: $e");
+    //           snackbarMessage = "Something went wrong";
+    //         } catch (e) {
+    //           Logger().w("Unknown Exception: $e");
+    //           snackbarMessage = e.toString();
+    //         } finally {
+    //           Logger().i(snackbarMessage);
+    //           Scaffold.of(context).showSnackBar(
+    //             SnackBar(
+    //               content: Text(snackbarMessage),
+    //             ),
+    //           );
+    //         }
+    //       }
+    //       await refreshPage();
+    //       return confirmation;
+    //     } else if (direction == DismissDirection.endToStart) {
+    //       final confirmation = await showConfirmationDialog(
+    //           context, "Are you sure to Edit Product?");
+    //       if (confirmation) {
+    //         await Navigator.push(
+    //           context,
+    //           MaterialPageRoute(
+    //             builder: (context) => EditProductScreen(
+    //               productToEdit: product,
+    //             ),
+    //           ),
+    //         );
+    //       }
+    //       await refreshPage();
+    //       return false;
+    //     }
+    //     return false;
+    //   },
+    //   onDismissed: (direction) async {
+    //     await refreshPage();
+    //   },
+    // );
   }
 
   Widget buildDismissiblePrimaryBackground() {

@@ -133,12 +133,12 @@ class _TabbarState extends State<Tabbar> {
           ),
           BottomNavigationBarItem(
             icon: new Icon(
-              EvaIcons.gridOutline,
+              EvaIcons.giftOutline,
               color: _currentIndex == 1 ? kPrimaryColor : kPurpleColor,
             ),
             title: _currentIndex == 1
                 ? Text(
-                    'Categories',
+                    'Orders',
                     style: TextStyle(color: kPrimaryColor),
                   )
                 : Text(''),
